@@ -2,17 +2,22 @@ from redis import Redis
 
 db = Redis(host="localhost", port=6379, db=0)
 
+
+# Utility functions for user
+def seeUsers():
+    return db.hgetall("users")
+
+
+def existUser(user):
+    """Receives: a username string
+    Returns: a boolean whether user exists in table"""
+    return db.hexists("users", user)
+
+
 # User registration
 def registerUser(user, password):
     return db.hset("users", user, password)
 
-def seeUsers():
-    return db.hgetall("users")
-
-def existUser(user):
-    """Receives: a string of the username
-        Returns: a boolean if it exists as a key in users table"""
-    return db.hexists("users", user)  
 
 # User login
 def login(user, password):
@@ -29,24 +34,31 @@ def login(user, password):
 # Follow a user
 def followUser(user, userToFollow):
     # the user's channel subscribes to toFollow channel
-    db.sadd(user+":following", userToFollow)
-    db.sadd(userToFollow+":followers", user)
-    
+    db.sadd(user + ":following", userToFollow)
+    db.sadd(userToFollow + ":followers", user)
+
 
 def unfollowUser(user, userToUnfollow):
-    return db.srem(user+":following", userToUnfollow)
+    return db.srem(user + ":following", userToUnfollow)
 
-# Suscribe to a channel
-def suscribe(user):
-    return db.suscribe(user+":channel")
 
-# Notify a channel the subscripiton
+# Suscribe current instance to a channel
+def subscribe(user):
+    return db.suscribe(user + ":channel")
+
+
+# Notify a channel about a new follower
 def notify(user, follower):
-    return db.publish(user+':channel'," started following you")
+    return db.publish(user + ":channel", " started following you")
+
 
 # Tweet a messages (list)
-def createTweet (user, msg):
-    return db.publish(user+":channel", msg)
+def createTweet(user, msg):
+    return db.publish(user + ":channel", msg)
+
+
+def helloWorld():
+    print("APP SAYS: Hello, World!")
 
 
 # See the messages in your timeline
