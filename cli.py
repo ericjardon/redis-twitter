@@ -50,9 +50,20 @@ def userMenu(currentUser):
     3) Log out"""
     print("welcome,", currentUser)
     tl = r.pubsub()  # pubsub object for the user's timeline
+
     pass
 
+def subscribeAll(currentUser):
+    following = app.getFollowing(currentUser)
 
-if __name__ == "__main__":
-    startMenu()
-    print()
+# Suscribe current instance to a channel
+def subscribe(user):
+    return db.suscribe(user + ":channel")
+
+
+# Notify a channel about a new follower
+def notify(user, follower):
+    return db.publish(user + ":channel", " started following you")
+
+
+startMenu()

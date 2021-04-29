@@ -42,35 +42,13 @@ def unfollowUser(user, userToUnfollow):
     return db.srem(user + ":following", userToUnfollow)
 
 
-# Suscribe current instance to a channel
-def subscribe(user):
-    return db.suscribe(user + ":channel")
-
-
-# Notify a channel about a new follower
-def notify(user, follower):
-    return db.publish(user + ":channel", " started following you")
-
-
 # Tweet a messages (list)
 def createTweet(user, msg):
     return db.publish(user + ":channel", msg)
 
+# Return the set of following users of a user
+def getFollowing(user):
+    return db.smembers(user+':following')
 
-def helloWorld():
-    print("APP SAYS: Hello, World!")
 
-
-# See the messages in your timeline
-
-# registerUser(user, password)
-# if login(user, password):
-#     currentUser = user
-#     print("Welcome ", currentUser)
-# else:
-#     print("Incorrect password or user")
-
-# print(registerUser("bryanmon", "chelas123"))
-
-# solo confirmar si la password ingresada es igual a la existente en redis
-# si sí, todo cool, si no, lanzar excepción o algo a´si
+getFollowing('Ein')
