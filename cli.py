@@ -24,7 +24,6 @@ def startMenu():
             while login:
                 user = input("Your username: ")
                 password = input("Your password: ")
-                api.helloWorld()
                 if api.login(user, password):
                     return userMenu(user)
                 else:
@@ -37,9 +36,8 @@ def startMenu():
                     else:
                         return
 
-        if i == "2":
+        if i == "2":  # register new user
             return userMenu("new user")
-
         pass
 
 
@@ -50,11 +48,16 @@ def userMenu(currentUser):
     3) Log out"""
     print("welcome,", currentUser)
     tl = r.pubsub()  # pubsub object for the user's timeline
-
+    subscribeAll(currentUser)
     pass
+
 
 def subscribeAll(currentUser):
     following = app.getFollowing(currentUser)
+    for account in following:
+        # subscribe to every following account
+        app.followUser(currentUser, account)
+
 
 # Suscribe current instance to a channel
 def subscribe(user):
