@@ -35,16 +35,22 @@ def login(user, password):
 def followUser(user, userToFollow):
     # the user's channel subscribes to toFollow channel
     db.sadd(user + ":following", userToFollow)
-    db.sadd(userToFollow + ":followers", user)
+    return db.sadd(userToFollow + ":followers", user)
+    
+
+
 
 
 def unfollowUser(user, userToUnfollow):
-    return db.srem(user + ":following", userToUnfollow)
+    db.srem(userToUnfollow + ":following", userToUnfollow)
+    db.srem(user +":followers", userToUnfollow)
 
-
+def timeline(user):
+    db.smembers(user+":following")
+    
 # Tweet a messages (list)
-def createTweet(user, msg):
-    return db.publish(user + ":channel", msg)
+# def createTweet(user, msg):
+#     return db.publish(user + ":channel", msg)
 
 # Return the set of following users of a user
 def getFollowing(user):

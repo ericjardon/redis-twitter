@@ -1,7 +1,28 @@
 import app as api
 from redis import Redis
 
-conn = Redis(host="localhost", port=6379, db=0)
+
+db = Redis(host="localhost", port=6379, db=0)
+tl = db.pubsub()  # pubsub object for the user's timeline
+
+def subscribeAll(currentUser):
+    following = app.getFollowing(currentUser)
+    for account in following:
+        # subscribe to every following account
+        api.followUser(currentUser, account)
+
+#Create a new tweet and publish it on the correspondant channel
+def createTweet(user, msg):
+    db.publish(user + ":channel", msg)
+
+# Suscribe current instance to a channel
+def subscribe(user):
+    print(tl.subscribe(user + ":channel"))
+
+
+# Notify a channel about a new follower
+def notify(user, follower):
+    tl.publish(user + ":channel", " started following you")
 
 
 def startMenu():
@@ -37,36 +58,71 @@ def startMenu():
                         return
 
         if i == "2":  # register new user
-            return userMenu("new user")
-        pass
+            print("\nRegister")
+            login = True
+            while login:
+                user = input("Create username: ")
+                password = input("Create password: ")
+                if api.registerUser(user, password):
+                    return userMenu(user)
+                else:
+                    print("The username already exists")
+                    login = input("Try again? y/n")
+                    if login == "n":
+                        break
+                    elif login == "y":
+                        login = True
+                    else:
+                        return
+        
 
 
 def userMenu(currentUser):
-    """For logged in users
-    1) Follow somebody
-    2) Tweet something
-    3) Log out"""
-    print("welcome,", currentUser)
-    tl = r.pubsub()  # pubsub object for the user's timeline
-    subscribeAll(currentUser)
-    pass
+    
+    print("Welcome to Twitter-Redis")
+
+    exit = False
+    
+    while not exit:
+      print("Type 1 to follow somebody, 2 to tweet something, 3 to see your timeline or 4 to exit")
+      option = input("Selection: ")
+
+      if option == "1":
+        print("Option 1")
+        userToFollow = input("Type the username of who you want to follow: ")
+        print(subscribe(userToFollow))
+        if api.followUser(currentUser, userToFollow):
+            subscribe(userToFollow)
+            print("You started following: ", userToFollow)
+
+      
+      elif option == "2":
+        msg = input("Tweet something: ")
+        createTweet(currentUser, msg) 
+      
+      elif option == "3":
+        currentlyFollowing = db.smembers(currentUser + ":following")
+        for user in currentlyFollowing:
+            print(user)
+        
+        #print(tl.get_message())
+
+      elif option == "4":
+        print("Bye!")
+        break
+    
+    
+   
 
 
-def subscribeAll(currentUser):
-    following = app.getFollowing(currentUser)
-    for account in following:
-        # subscribe to every following account
-        app.followUser(currentUser, account)
+
+    # print("welcome,", currentUser)
+
+    # subscribeAll(currentUser)
+    # pass
 
 
-# Suscribe current instance to a channel
-def subscribe(user):
-    return db.suscribe(user + ":channel")
 
-
-# Notify a channel about a new follower
-def notify(user, follower):
-    return db.publish(user + ":channel", " started following you")
 
 
 startMenu()
