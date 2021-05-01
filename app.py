@@ -36,6 +36,9 @@ def login(user, password):
 
 # Follow a user
 def followUser(user, userToFollow):
+    if not existUser(userToFollow):
+        print("That account does not exist")
+        return 0
     a = db.sadd(user + ":following", userToFollow)
     b = db.sadd(userToFollow + ":followers", user)
     print("followUser", user, userToFollow, "result:", a, "and", b)

@@ -7,25 +7,38 @@ db = Redis(host="localhost", port=6379, db=0)
 ### PUBLISH-SUBSCRIBE ACTIONS
 
 # Subscribe to all the channles the user follows
-def subscribeAll(currentUser):
-    following = app.getFollowing(currentUser)
+def subscribeAll(currentUser, tl):
+    print("Subscribing to all...")
+    following = api.getFollowing(currentUser)
     for account in following:
-        api.followUser(currentUser, account)
+        print(account.decode("utf-8"))
+        subscribe(tl, account.decode("utf-8"))
 
 
 # Publish a tweet ito the given channel
 def publishTweet(user, msg):
-    db.publish(user + ":channel", msg)
+    return db.publish(user + ":channel", msg)
 
 
 # Suscribe current instance to a channel
 def subscribe(tl, user):
-    tl.subscribe(user + ":channel")
+    print("Subscribed to channel", user + ":channel")
+    return tl.subscribe(user + ":channel")
 
 
 # Notify a channel about a new follower
 def notify(user, follower):
     tl.publish(user + ":channel", " started following you")
+
+
+def fetchTweets(tl):
+    print("---TIMELINE---")
+    # a None value is returned from get_message() since the message was already handled.
+    msg = tl.get_message()
+    while msg is not None:
+        if msg["type"] == "message":
+            print(msg["data"].decode("utf-8"))
+        msg = tl.get_message()
 
 
 def startMenu():
@@ -83,6 +96,8 @@ def userMenu(currentUser):
 
     print("Welcome to Twitter-Redis")
     tl = db.pubsub()  # pubsub object for the user's timeline
+    subscribeAll(currentUser, tl)  # subscribe to all currently following users
+    subscribe(tl, currentUser)  # subscribe to your own channel
     exit = False
 
     while not exit:
@@ -94,25 +109,16 @@ def userMenu(currentUser):
         if option == "1":
             print("Option 1")
             userToFollow = input("Type the username of who you want to follow: ")
-            print(subscribe(userToFollow))
             if api.followUser(currentUser, userToFollow):
-                subscribe(userToFollow)
+                subscribe(tl, userToFollow)
                 print("You started following: ", userToFollow)
 
         elif option == "2":
             msg = input("Tweet something: ")
-            for i in range(5):
-                publishTweet(currentUser, msg)  # publishes to their own channel
-                time.sleep(3)
+            publishTweet(currentUser, msg)  # publishes to their own channel
 
         elif option == "3":
-            currentlyFollowing = db.smembers(currentUser + ":following")
-            for user in currentlyFollowing:
-                subscribe(user.decode("UTF-8"))
-
-                msg = tl.get_message()
-                if msg["type"] == "message":
-                    print(msg["data"])
+            fetchTweets(tl)
 
         elif option == "4":
             print("Bye!")
