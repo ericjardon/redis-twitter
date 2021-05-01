@@ -16,6 +16,9 @@ def existUser(user):
 
 # User registration
 def registerUser(user, password):
+    if existUser(user):
+        print("User already exists. Registration failed")
+        return 0
     return db.hset("users", user, password)
 
 
@@ -33,28 +36,22 @@ def login(user, password):
 
 # Follow a user
 def followUser(user, userToFollow):
-    # the user's channel subscribes to toFollow channel
-    db.sadd(user + ":following", userToFollow)
-    return db.sadd(userToFollow + ":followers", user)
-    
-
-
+    a = db.sadd(user + ":following", userToFollow)
+    b = db.sadd(userToFollow + ":followers", user)
+    print("followUser", user, userToFollow, "result:", a, "and", b)
 
 
 def unfollowUser(user, userToUnfollow):
-    db.srem(userToUnfollow + ":following", userToUnfollow)
-    db.srem(user +":followers", userToUnfollow)
+    a = db.srem(userToUnfollow + ":following", userToUnfollow)
+    b = db.srem(user + ":followers", userToUnfollow)
+    print("unfollowUser", user, userToUnfollow, "result:", a, "and", b)
 
-def timeline(user):
-    db.smembers(user+":following")
-    
+
+# Return the set of accounts that user follows
+def getFollowing(user):
+    return db.smembers(user + ":following")
+
+
 # Tweet a messages (list)
 # def createTweet(user, msg):
 #     return db.publish(user + ":channel", msg)
-
-# Return the set of following users of a user
-def getFollowing(user):
-    return db.smembers(user+':following')
-
-
-getFollowing('Ein')

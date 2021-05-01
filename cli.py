@@ -3,24 +3,24 @@ from redis import Redis
 import time
 
 db = Redis(host="localhost", port=6379, db=0)
-tl = db.pubsub()  # pubsub object for the user's timeline
 
+### PUBLISH-SUBSCRIBE ACTIONS
 
+# Subscribe to all the channles the user follows
 def subscribeAll(currentUser):
     following = app.getFollowing(currentUser)
     for account in following:
-        # subscribe to every following account
         api.followUser(currentUser, account)
 
 
-#Create a new tweet and publish it on the correspondant channel
-def createTweet(user, msg):
+# Publish a tweet ito the given channel
+def publishTweet(user, msg):
     db.publish(user + ":channel", msg)
 
 
 # Suscribe current instance to a channel
-def subscribe(user):
-    print(tl.subscribe(user + ":channel"))
+def subscribe(tl, user):
+    tl.subscribe(user + ":channel")
 
 
 # Notify a channel about a new follower
@@ -35,16 +35,14 @@ def startMenu():
     exit = False
     while not exit:
         print("\nMain Menu")
-        print(
-            "1) Login to your account\n2) Register a new account\n3) Exit Twitter"
-        )
+        print("1) Login to your account\n2) Register a new account\n3) Exit Twitter")
         i = input("Selection: ")
 
         if i == "3":
             print("Bye!")
             return
 
-        if i == "1":
+        if i == "1":  # Log in
             print("LOGIN\n")
             login = True
             while login:
@@ -62,8 +60,8 @@ def startMenu():
                     else:
                         return
 
-        if i == "2":  # register new user
-            print("\nRegister")
+        if i == "2":  # Register new user
+            print("\REGISTER")
             login = True
             while login:
                 user = input("Create username: ")
@@ -84,7 +82,7 @@ def startMenu():
 def userMenu(currentUser):
 
     print("Welcome to Twitter-Redis")
-
+    tl = db.pubsub()  # pubsub object for the user's timeline
     exit = False
 
     while not exit:
@@ -95,8 +93,7 @@ def userMenu(currentUser):
 
         if option == "1":
             print("Option 1")
-            userToFollow = input(
-                "Type the username of who you want to follow: ")
+            userToFollow = input("Type the username of who you want to follow: ")
             print(subscribe(userToFollow))
             if api.followUser(currentUser, userToFollow):
                 subscribe(userToFollow)
@@ -105,7 +102,7 @@ def userMenu(currentUser):
         elif option == "2":
             msg = input("Tweet something: ")
             for i in range(5):
-                createTweet(currentUser, msg)
+                publishTweet(currentUser, msg)  # publishes to their own channel
                 time.sleep(3)
 
         elif option == "3":
@@ -114,8 +111,8 @@ def userMenu(currentUser):
                 subscribe(user.decode("UTF-8"))
 
                 msg = tl.get_message()
-                if msg['type'] == 'message':
-                    print(msg['data'])
+                if msg["type"] == "message":
+                    print(msg["data"])
 
         elif option == "4":
             print("Bye!")
