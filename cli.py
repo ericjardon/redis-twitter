@@ -38,7 +38,8 @@ def fetchTweets(tl):
     msg = tl.get_message()
     while msg is not None:
         if msg["type"] == "message":
-            print(msg["data"].decode("utf-8"))
+            print(msg["channel"].decode("utf-8").split(":")[0], ":",
+                  msg["data"].decode("utf-8"))
         msg = tl.get_message()
 
 
