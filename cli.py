@@ -6,6 +6,7 @@ db = Redis(host="localhost", port=6379, db=0)
 
 ### PUBLISH-SUBSCRIBE ACTIONS
 
+
 # Subscribe to all the channles the user follows
 def subscribeAll(currentUser, tl):
     print("Subscribing to all...")
@@ -48,7 +49,9 @@ def startMenu():
     exit = False
     while not exit:
         print("\nMain Menu")
-        print("1) Login to your account\n2) Register a new account\n3) Exit Twitter")
+        print(
+            "1) Login to your account\n2) Register a new account\n3) Exit Twitter"
+        )
         i = input("Selection: ")
 
         if i == "3":
@@ -108,7 +111,8 @@ def userMenu(currentUser):
 
         if option == "1":
             print("Option 1")
-            userToFollow = input("Type the username of who you want to follow: ")
+            userToFollow = input(
+                "Type the username of who you want to follow: ")
             if api.followUser(currentUser, userToFollow):
                 subscribe(tl, userToFollow)
                 print("You started following: ", userToFollow)

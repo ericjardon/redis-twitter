@@ -42,6 +42,7 @@ def followUser(user, userToFollow):
     a = db.sadd(user + ":following", userToFollow)
     b = db.sadd(userToFollow + ":followers", user)
     print("followUser", user, userToFollow, "result:", a, "and", b)
+    return 1
 
 
 def unfollowUser(user, userToUnfollow):
